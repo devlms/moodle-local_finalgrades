@@ -149,6 +149,7 @@ class submission {
                 'timesubmitted' => time(),
             ]);
             $grade->set_locked(1, false, false);
+            self::log('grade_submitted', $course->id, $id, $userid);
             $count++;
         }
         return $count;
@@ -163,7 +164,68 @@ class submission {
      * @param int $by
      */
     public static function withdraw(stdClass $course, int $userid, string $reason, int $by): void {
-        self::close($course->id, $userid, self::WITHDRAWN, $reason, $by);
+        $row = self::close($course->id, $userid, self::WITHDRAWN, $reason, $by);
+        self::log('grade_withdrawn', $course->id, $row->id, $userid, ['reason' => $row->reason]);
+    }
+
+    /**
+     * Approve submitted grades. Approved grades keep the gradebook total locked.
+     *
+     * @param stdClass $course
+     * @param int[] $userids
+     * @param int $by The approver.
+     * @return int How many grades were approved.
+     */
+    public static function approve(stdClass $course, array $userids, int $by): int {
+        global $DB;
+        $count = 0;
+        foreach (array_unique(array_map('intval', $userids)) as $userid) {
+            $row = self::current($course->id, $userid);
+            if (!$row || $row->status !== self::SUBMITTED) {
+                continue;
+            }
+            $DB->update_record('local_finalgrades_sub', (object) [
+                'id' => $row->id,
+                'status' => self::APPROVED,
+                'reviewedby' => $by,
+                'timereviewed' => time(),
+            ]);
+            self::log('grade_approved', $course->id, $row->id, $userid);
+            $count++;
+        }
+        return $count;
+    }
+
+    /**
+     * Send a submitted grade back to the teacher with a reason, and unlock the total.
+     *
+     * @param stdClass $course
+     * @param int $userid
+     * @param string $reason
+     * @param int $by The approver.
+     */
+    public static function return_grade(stdClass $course, int $userid, string $reason, int $by): void {
+        $row = self::close($course->id, $userid, self::RETURNED, $reason, $by);
+        self::log('grade_returned', $course->id, $row->id, $userid, ['reason' => $row->reason]);
+    }
+
+    /**
+     * Trigger one of this plugin's events about a student's grade.
+     *
+     * @param string $name Event class name.
+     * @param int $courseid
+     * @param int $rowid
+     * @param int $userid The student.
+     * @param array $other
+     */
+    protected static function log(string $name, int $courseid, int $rowid, int $userid, array $other = []): void {
+        $class = '\\local_finalgrades\\event\\' . $name;
+        $class::create([
+            'context' => \context_course::instance($courseid),
+            'objectid' => $rowid,
+            'relateduserid' => $userid,
+            'other' => $other,
+        ])->trigger();
     }
 
     /**

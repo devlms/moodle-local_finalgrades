@@ -153,4 +153,38 @@ final class submission_test extends \advanced_testcase {
         $this->assertSame('Resit', reset($rows)->reason);
         $this->assertEquals(65, submission::current($this->course->id, $student->id)->grade);
     }
+
+    public function test_approve_and_return(): void {
+        $first = $this->student(80);
+        $second = $this->student(55);
+        submission::submit($this->course, [$first->id, $second->id], $this->teacher->id);
+        $approver = $this->getDataGenerator()->create_user();
+
+        $this->assertSame(1, submission::approve($this->course, [$first->id], $approver->id));
+        $this->assertSame(0, submission::approve($this->course, [$first->id], $approver->id));
+        $this->assertSame(submission::APPROVED, submission::current($this->course->id, $first->id)->status);
+
+        submission::return_grade($this->course, $second->id, 'Check the late penalty', $approver->id);
+        $this->assertNull(submission::current($this->course->id, $second->id));
+        // Returned grades follow the gradebook again.
+        $this->grade($second->id, 58);
+        $this->assertEquals(58, $this->total($second->id));
+    }
+
+    public function test_events_are_logged(): void {
+        $student = $this->student(80);
+        $sink = $this->redirectEvents();
+        submission::submit($this->course, [$student->id], $this->teacher->id);
+        submission::approve($this->course, [$student->id], $this->teacher->id);
+        submission::withdraw($this->course, $student->id, 'Wrong total', $this->teacher->id);
+        $events = array_values(array_filter($sink->get_events(), fn($e) => $e->component === 'local_finalgrades'));
+        $names = array_map(fn($e) => $e->eventname, $events);
+        $this->assertSame([
+            '\\local_finalgrades\\event\\grade_submitted',
+            '\\local_finalgrades\\event\\grade_approved',
+            '\\local_finalgrades\\event\\grade_withdrawn',
+        ], $names);
+        $this->assertEquals($student->id, $events[0]->relateduserid);
+        $this->assertSame('Wrong total', $events[2]->other['reason']);
+    }
 }
