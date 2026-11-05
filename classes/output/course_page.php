@@ -86,7 +86,8 @@ class course_page implements \renderable, \templatable {
         $totals = $DB->get_records_menu('grade_grades', ['itemid' => $item->id], '', 'userid, finalgrade');
         $latest = $this->latest_rows();
         $ungraded = $this->ungraded_counts(array_keys($students));
-        $pictures = $DB->get_records_list('user', 'id', array_keys($students), '', \core_user\fields::for_userpic()->get_sql('', false, '', '', false)->selects);
+        $picturefields = \core_user\fields::for_userpic()->get_sql('', false, '', '', false)->selects;
+        $pictures = $DB->get_records_list('user', 'id', array_keys($students), '', $picturefields);
 
         $rows = [];
         foreach ($students as $userid => $student) {
@@ -150,9 +151,12 @@ class course_page implements \renderable, \templatable {
      */
     protected function ungraded_counts(array $userids): array {
         global $DB;
-        $items = $DB->get_fieldset_select('grade_items', 'id',
+        $items = $DB->get_fieldset_select(
+            'grade_items',
+            'id',
             "courseid = :courseid AND itemtype NOT IN ('course', 'category') AND gradetype <> :none",
-            ['courseid' => $this->course->id, 'none' => GRADE_TYPE_NONE]);
+            ['courseid' => $this->course->id, 'none' => GRADE_TYPE_NONE]
+        );
         if (!$items || !$userids) {
             return [];
         }

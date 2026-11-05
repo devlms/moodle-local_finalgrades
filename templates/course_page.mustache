@@ -79,9 +79,7 @@
                 <tr>
                     <th scope="col" class="local-finalgrades-check">
                         {{#hasselectable}}
-                        <input type="checkbox" id="local-finalgrades-all" data-action="toggle" data-toggle="master"
-                               data-togglegroup="local-finalgrades" data-toggle-selectall="{{#str}}selectall, local_finalgrades{{/str}}"
-                               data-toggle-deselectall="{{#str}}deselectall, local_finalgrades{{/str}}">
+                        <input type="checkbox" id="local-finalgrades-all" data-local-finalgrades="all">
                         <label for="local-finalgrades-all" class="local-finalgrades-sr">{{#str}}selectall, local_finalgrades{{/str}}</label>
                         {{/hasselectable}}
                     </th>
@@ -100,12 +98,12 @@
                     <td class="local-finalgrades-check">
                         {{#cansubmit}}
                         <input type="checkbox" name="userids[]" value="{{userid}}" id="local-finalgrades-u{{userid}}"
-                               data-action="toggle" data-toggle="slave" data-togglegroup="local-finalgrades">
+                               data-local-finalgrades="pick">
                         <label for="local-finalgrades-u{{userid}}" class="local-finalgrades-sr">{{name}}</label>
                         {{/cansubmit}}
                         {{#canapprove}}
                         <input type="checkbox" name="userids[]" value="{{userid}}" id="local-finalgrades-u{{userid}}"
-                               data-action="toggle" data-toggle="slave" data-togglegroup="local-finalgrades">
+                               data-local-finalgrades="pick">
                         <label for="local-finalgrades-u{{userid}}" class="local-finalgrades-sr">{{name}}</label>
                         {{/canapprove}}
                     </td>
@@ -140,7 +138,28 @@
     {{/hasrows}}
 </div>
 {{#js}}
-require(['core/checkbox-toggleall'], function(ToggleAll) {
-    ToggleAll.init();
-});
+(function() {
+    // Select all, the same on every Moodle version: core's toggle module renamed its attributes in 5.0.
+    var all = document.querySelector('[data-local-finalgrades="all"]');
+    if (!all) {
+        return;
+    }
+    var picks = function() {
+        return Array.prototype.slice.call(document.querySelectorAll('[data-local-finalgrades="pick"]'));
+    };
+    all.addEventListener('change', function() {
+        picks().forEach(function(box) {
+            box.checked = all.checked;
+        });
+    });
+    picks().forEach(function(box) {
+        box.addEventListener('change', function() {
+            var ticked = picks().filter(function(b) {
+                return b.checked;
+            }).length;
+            all.checked = ticked === picks().length;
+            all.indeterminate = ticked > 0 && ticked < picks().length;
+        });
+    });
+})();
 {{/js}}

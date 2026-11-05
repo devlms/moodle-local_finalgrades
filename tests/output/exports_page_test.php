@@ -53,9 +53,13 @@ final class exports_page_test extends \advanced_testcase {
 
         $data = json_decode(json_encode((new exports_page())->export_for_template($PAGE->get_renderer('core'))), true);
         $this->assertSame(2, $data['pendingcount']);
-        $this->assertSame([['course' => 'History 101', 'idnumber' => 'HIST101', 'new' => 2, 'change' => 0, 'withdrawn' => 0]],
-            array_map(fn($c) => array_intersect_key($c, array_flip(['course', 'idnumber', 'new', 'change', 'withdrawn'])),
-                $data['pending']));
+        $this->assertSame(
+            [['course' => 'History 101', 'idnumber' => 'HIST101', 'new' => 2, 'change' => 0, 'withdrawn' => 0]],
+            array_map(
+                fn($c) => array_intersect_key($c, array_flip(['course', 'idnumber', 'new', 'change', 'withdrawn'])),
+                $data['pending']
+            )
+        );
         $this->assertCount(1, $data['exports']);
         $this->assertSame($first->filename, $data['exports'][0]['filename']);
         $this->assertSame(get_string('bytask', 'local_finalgrades'), $data['exports'][0]['by']);

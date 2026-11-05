@@ -34,7 +34,6 @@ $string['approveselected'] = 'Approve selected grades';
 $string['bytask'] = 'Scheduled task';
 $string['choosestudents'] = 'Tick at least one student first.';
 $string['coursetotal'] = 'Course total';
-$string['deselectall'] = 'Deselect all';
 $string['dropfolder'] = 'Drop folder';
 $string['dropfolder_desc'] = 'A folder on the Moodle server where each export file is also copied, for a job that loads it into the student records system. Leave empty to only keep the files in Moodle for download. The web server must be able to write to it.';
 $string['dropfolderis'] = 'Each file is also copied to {$a}.';

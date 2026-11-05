@@ -57,8 +57,13 @@ class exports_page implements \renderable, \templatable {
 
         $exports = [];
         $records = $DB->get_records('local_finalgrades_export', null, 'id DESC', '*', 0, self::LIMIT);
-        $makers = $DB->get_records_list('user', 'id', array_filter(array_column($records, 'createdby')), '',
-            'id, ' . implode(', ', \core_user\fields::get_name_fields()));
+        $makers = $DB->get_records_list(
+            'user',
+            'id',
+            array_filter(array_column($records, 'createdby')),
+            '',
+            'id, ' . implode(', ', \core_user\fields::get_name_fields())
+        );
         $system = \context_system::instance();
         foreach ($records as $export) {
             $exports[] = [
@@ -68,7 +73,13 @@ class exports_page implements \renderable, \templatable {
                 'by' => isset($makers[$export->createdby])
                     ? fullname($makers[$export->createdby]) : get_string('bytask', 'local_finalgrades'),
                 'url' => \moodle_url::make_pluginfile_url(
-                    $system->id, 'local_finalgrades', exporter::FILEAREA, $export->id, '/', $export->filename, true
+                    $system->id,
+                    'local_finalgrades',
+                    exporter::FILEAREA,
+                    $export->id,
+                    '/',
+                    $export->filename,
+                    true
                 )->out(false),
             ];
         }

@@ -118,7 +118,9 @@ final class provider_test extends provider_testcase {
         provider::delete_data_for_user(new approved_contextlist($this->u['teacher'], 'local_finalgrades', [$this->context->id]));
         provider::delete_data_for_user(new approved_contextlist($this->u['approver'], 'local_finalgrades', [$this->context->id]));
         provider::delete_data_for_user(new approved_contextlist(
-            $this->u['registrar'], 'local_finalgrades', [\context_system::instance()->id]
+            $this->u['registrar'],
+            'local_finalgrades',
+            [\context_system::instance()->id]
         ));
         $this->assertSame(3, $DB->count_records('local_finalgrades_sub'));
         $this->assertSame(0, $DB->count_records_select('local_finalgrades_sub', 'submittedby > 0 OR reviewedby > 0'));

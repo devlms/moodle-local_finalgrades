@@ -80,14 +80,18 @@ class provider implements
      */
     public static function get_contexts_for_userid(int $userid): contextlist {
         $list = new contextlist();
-        $list->add_from_sql("SELECT ctx.id FROM {local_finalgrades_sub} s
+        $list->add_from_sql(
+            "SELECT ctx.id FROM {local_finalgrades_sub} s
             JOIN {context} ctx ON ctx.instanceid = s.courseid AND ctx.contextlevel = :level
             WHERE s.userid = :u1 OR s.submittedby = :u2 OR s.reviewedby = :u3",
-            ['level' => CONTEXT_COURSE, 'u1' => $userid, 'u2' => $userid, 'u3' => $userid]);
-        $list->add_from_sql("SELECT ctx.id FROM {context} ctx
+            ['level' => CONTEXT_COURSE, 'u1' => $userid, 'u2' => $userid, 'u3' => $userid]
+        );
+        $list->add_from_sql(
+            "SELECT ctx.id FROM {context} ctx
             WHERE ctx.contextlevel = :level
               AND EXISTS (SELECT 1 FROM {local_finalgrades_export} e WHERE e.createdby = :userid)",
-            ['level' => CONTEXT_SYSTEM, 'userid' => $userid]);
+            ['level' => CONTEXT_SYSTEM, 'userid' => $userid]
+        );
         return $list;
     }
 
@@ -100,9 +104,11 @@ class provider implements
         $context = $userlist->get_context();
         if ($context instanceof \context_course) {
             foreach (['userid', 'submittedby', 'reviewedby'] as $column) {
-                $userlist->add_from_sql($column,
+                $userlist->add_from_sql(
+                    $column,
                     "SELECT $column FROM {local_finalgrades_sub} WHERE courseid = :courseid AND $column > 0",
-                    ['courseid' => $context->instanceid]);
+                    ['courseid' => $context->instanceid]
+                );
             }
         } else if ($context instanceof \context_system) {
             $userlist->add_from_sql('createdby', 'SELECT createdby FROM {local_finalgrades_export} WHERE createdby > 0', []);

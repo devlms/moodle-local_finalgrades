@@ -196,7 +196,8 @@ final class exporter_test extends \advanced_testcase {
         $this->assertSame(1, (int) $export->rowcount);
         $this->assertSame(['change'], array_column($this->csv($export), 'action'));
         // The withdrawal is settled too, so it is not sent later.
-        $this->assertSame(0, $DB->count_records('local_finalgrades_sub', ['status' => submission::WITHDRAWN, 'closeexportid' => 0]));
+        $open = ['status' => submission::WITHDRAWN, 'closeexportid' => 0];
+        $this->assertSame(0, $DB->count_records('local_finalgrades_sub', $open));
         $this->assertNull(exporter::run());
     }
 }
