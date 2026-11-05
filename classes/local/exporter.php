@@ -53,8 +53,11 @@ class exporter {
     /**
      * Rows waiting to be sent: new or changed grades, and sent grades taken back since.
      *
+     * A withdrawal is marked "superseded" when the same student's new grade goes in the same export: the
+     * records system then gets one "change" row, and the withdrawal is settled without a line of its own.
+     *
      * @param int $courseid 0 for every course.
-     * @return stdClass[] Submission rows with an "action" property, oldest first.
+     * @return stdClass[] Submission rows with "action" and "superseded" properties, oldest first.
      */
     public static function pending(int $courseid = 0): array {
         global $DB;
@@ -73,7 +76,27 @@ class exporter {
                             AND s.exportid > 0 AND s.closeexportid = 0))
                        $coursesql
               ORDER BY s.id";
-        return $DB->get_records_sql($sql, $sendparams + $closeparams + ['courseid' => $courseid]);
+        $rows = $DB->get_records_sql($sql, $sendparams + $closeparams + ['courseid' => $courseid]);
+        $sending = [];
+        foreach ($rows as $row) {
+            if ($row->action !== 'withdrawn') {
+                $sending[$row->courseid . '-' . $row->userid] = true;
+            }
+        }
+        foreach ($rows as $row) {
+            $row->superseded = $row->action === 'withdrawn' && isset($sending[$row->courseid . '-' . $row->userid]);
+        }
+        return $rows;
+    }
+
+    /**
+     * The rows that get a line in the file.
+     *
+     * @param stdClass[] $rows Pending rows.
+     * @return stdClass[]
+     */
+    public static function lines(array $rows): array {
+        return array_filter($rows, fn($row) => !$row->superseded);
     }
 
     /**
@@ -90,7 +113,7 @@ class exporter {
         }
         $now = time();
         $transaction = $DB->start_delegated_transaction();
-        $export = (object) ['rowcount' => count($rows), 'filename' => '', 'createdby' => $by, 'timecreated' => $now];
+        $export = (object) ['rowcount' => count(self::lines($rows)), 'filename' => '', 'createdby' => $by, 'timecreated' => $now];
         $export->id = $DB->insert_record('local_finalgrades_export', $export);
         $export->filename = 'final-grades-' . gmdate('Ymd-His', $now) . '-' . $export->id . '.csv';
         $DB->set_field('local_finalgrades_export', 'filename', $export->filename, ['id' => $export->id]);
@@ -102,7 +125,7 @@ class exporter {
             'itemid' => $export->id,
             'filepath' => '/',
             'filename' => $export->filename,
-        ], self::csv($rows));
+        ], self::csv(self::lines($rows)));
 
         foreach ($rows as $row) {
             $field = $row->action === 'withdrawn' ? 'closeexportid' : 'exportid';

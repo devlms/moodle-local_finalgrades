@@ -39,7 +39,7 @@ class exports_page implements \renderable, \templatable {
      */
     public function export_for_template(renderer_base $output): stdClass {
         global $DB;
-        $pending = exporter::pending();
+        $pending = exporter::lines(exporter::pending());
         $bycourse = [];
         foreach ($pending as $row) {
             $bycourse[$row->courseid] ??= ['new' => 0, 'change' => 0, 'withdrawn' => 0];

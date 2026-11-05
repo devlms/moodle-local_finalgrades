@@ -127,11 +127,16 @@
 
 .local-finalgrades-idnumber {
     color: #495057;
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
 
 .local-finalgrades-num {
     font-variant-numeric: tabular-nums;
+}
+
+.local-finalgrades-table thead th {
+    white-space: nowrap;
 }
 
 .local-finalgrades-total,
@@ -144,8 +149,58 @@
     color: #5b6269;
 }
 
-.local-finalgrades-table tr.is-returned {
+.local-finalgrades-table tr.is-returned > * {
     background: #fff8e6;
+    box-shadow: none;
+}
+
+/* Status badges, the same on Bootstrap 4 and 5. Colours meet WCAG AA on their backgrounds. */
+.local-finalgrades-badge {
+    display: inline-block;
+    padding: .25em .6em;
+    border: 1px solid transparent;
+    border-radius: 1rem;
+    font-size: .8rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.local-finalgrades-badge.is-missing {
+    border-color: #ced4da;
+    background: #fff;
+    color: #495057;
+}
+
+.local-finalgrades-badge.is-open {
+    background: #e9ecef;
+    color: #343a40;
+}
+
+.local-finalgrades-badge.is-returned {
+    background: #ffe3a3;
+    color: #5c3c00;
+}
+
+.local-finalgrades-badge.is-waiting {
+    background: #dbe9f6;
+    color: #0a4a85;
+}
+
+.local-finalgrades-badge.is-submitted,
+.local-finalgrades-badge.is-approved {
+    background: #d9eed8;
+    color: #1e4d1c;
+}
+
+.local-finalgrades-badge.is-sent {
+    background: #343a40;
+    color: #fff;
+}
+
+.local-finalgrades-note {
+    display: flex;
+    margin-top: .25rem;
 }
 
 .local-finalgrades-warn {

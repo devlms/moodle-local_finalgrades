@@ -182,4 +182,21 @@ final class exporter_test extends \advanced_testcase {
         $this->assertSame(1, $events[0]->other['rowcount']);
         $this->assertEquals($export->id, $events[0]->objectid);
     }
+
+    public function test_a_resubmitted_grade_is_sent_as_one_change(): void {
+        global $DB;
+        $student = $this->student(60, 'S1');
+        submission::submit($this->course, [$student->id], $this->teacher->id);
+        exporter::run();
+        submission::withdraw($this->course, $student->id, 'Re-marked', $this->teacher->id);
+        $this->grade($student->id, 66);
+        submission::submit($this->course, [$student->id], $this->teacher->id);
+
+        $export = exporter::run();
+        $this->assertSame(1, (int) $export->rowcount);
+        $this->assertSame(['change'], array_column($this->csv($export), 'action'));
+        // The withdrawal is settled too, so it is not sent later.
+        $this->assertSame(0, $DB->count_records('local_finalgrades_sub', ['status' => submission::WITHDRAWN, 'closeexportid' => 0]));
+        $this->assertNull(exporter::run());
+    }
 }

@@ -117,7 +117,7 @@ final class course_page_test extends \advanced_testcase {
         $this->assertSame('Late penalty missing', $rows['Returned']['reason']);
         $this->assertTrue($rows['Returned']['cansubmit']);
         $this->assertSame('sent', $rows['Sent']['status']);
-        $this->assertSame('badge bg-dark', $rows['Sent']['badge']);
+        $this->assertSame('local-finalgrades-badge is-sent', $rows['Sent']['badge']);
     }
 
     public function test_tiles_count_and_filter(): void {
@@ -155,5 +155,21 @@ final class course_page_test extends \advanced_testcase {
         $data = $this->export();
         $this->assertTrue($data['nocourseidnumber']);
         $this->assertTrue($this->rows($data)['Noid']['noidnumber']);
+    }
+
+    public function test_flags_items_not_graded_yet(): void {
+        $partly = $this->student('Partly', 70);
+        $this->getDataGenerator()->create_grade_item(['courseid' => $this->course->id, 'grademax' => 100]);
+        $rows = $this->rows($this->export());
+        // Moodle leaves empty grades out of the total, so the total looks final. The page says it is not.
+        $this->assertSame('open', $rows['Partly']['status']);
+        $this->assertSame(1, $rows['Partly']['ungraded']);
+        $this->assertSame('Items not graded: 1', $rows['Partly']['ungradedlabel']);
+        $this->assertTrue($rows['Partly']['cansubmit']);
+    }
+
+    public function test_badges_use_the_plugin_colours(): void {
+        $this->student('Open', 70);
+        $this->assertSame('local-finalgrades-badge is-open', $this->rows($this->export())['Open']['badge']);
     }
 }

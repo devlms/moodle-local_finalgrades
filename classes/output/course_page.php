@@ -35,15 +35,7 @@ require_once($CFG->libdir . '/gradelib.php');
  */
 class course_page implements \renderable, \templatable {
     /** Badge classes per status. */
-    public const BADGES = [
-        'missing' => 'badge bg-light text-dark border',
-        'open' => 'badge bg-secondary',
-        'returned' => 'badge bg-warning text-dark',
-        'waiting' => 'badge bg-info text-dark',
-        'submitted' => 'badge bg-success',
-        'approved' => 'badge bg-success',
-        'sent' => 'badge bg-dark',
-    ];
+    public const STATUSES = ['missing', 'open', 'returned', 'waiting', 'submitted', 'approved', 'sent'];
 
     /** Which tile each status counts under. */
     public const TILES = [
@@ -93,6 +85,7 @@ class course_page implements \renderable, \templatable {
         }
         $totals = $DB->get_records_menu('grade_grades', ['itemid' => $item->id], '', 'userid, finalgrade');
         $latest = $this->latest_rows();
+        $ungraded = $this->ungraded_counts(array_keys($students));
         $pictures = $DB->get_records_list('user', 'id', array_keys($students), '', \core_user\fields::for_userpic()->get_sql('', false, '', '', false)->selects);
 
         $rows = [];
@@ -128,7 +121,10 @@ class course_page implements \renderable, \templatable {
                     : ($value === null ? '' : grade_format_gradevalue($value, $item, true, GRADE_DISPLAY_TYPE_LETTER)),
                 'status' => $status,
                 'statuslabel' => get_string('status:' . $status, 'local_finalgrades'),
-                'badge' => self::BADGES[$status],
+                'badge' => 'local-finalgrades-badge is-' . $status,
+                'ungraded' => $ungraded[$userid] ?? 0,
+                'ungradedlabel' => empty($ungraded[$userid]) || $current
+                    ? '' : get_string('ungraded', 'local_finalgrades', $ungraded[$userid]),
                 'tile' => self::TILES[$status],
                 'reason' => $reason,
                 'reasonlabel' => $reason === '' ? '' : get_string('reason:' . $row->status, 'local_finalgrades', $reason),
@@ -141,6 +137,37 @@ class course_page implements \renderable, \templatable {
             ];
         }
         return $rows;
+    }
+
+    /**
+     * How many graded items of the course each student has no grade in yet.
+     *
+     * Moodle leaves empty grades out of the course total by default, so a total can look final while an exam is
+     * still unmarked.
+     *
+     * @param int[] $userids
+     * @return int[] Keyed by user id, only students with at least one.
+     */
+    protected function ungraded_counts(array $userids): array {
+        global $DB;
+        $items = $DB->get_fieldset_select('grade_items', 'id',
+            "courseid = :courseid AND itemtype NOT IN ('course', 'category') AND gradetype <> :none",
+            ['courseid' => $this->course->id, 'none' => GRADE_TYPE_NONE]);
+        if (!$items || !$userids) {
+            return [];
+        }
+        [$itemin, $params] = $DB->get_in_or_equal($items, SQL_PARAMS_NAMED, 'item');
+        [$userin, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'user');
+        $graded = $DB->get_records_sql_menu("SELECT userid, COUNT(1) FROM {grade_grades}
+            WHERE itemid $itemin AND userid $userin AND finalgrade IS NOT NULL GROUP BY userid", $params + $userparams);
+        $counts = [];
+        foreach ($userids as $userid) {
+            $missing = count($items) - (int) ($graded[$userid] ?? 0);
+            if ($missing > 0) {
+                $counts[$userid] = $missing;
+            }
+        }
+        return $counts;
     }
 
     /**
