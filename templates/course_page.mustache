@@ -1,0 +1,145 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_finalgrades/course_page
+
+    A course's final grades: count tiles, and every student's course total with where their grade is.
+
+    Context variables required for this template:
+    * tiles - list of {name, label, count, url, active}
+    * rows - list of {userid, name, picture, idnumber, noidnumber, total, percentage, letter, status, statuslabel, badge,
+      reasonlabel, cansubmit, canapprove, canwithdraw, canreturn, withdrawurl, returnurl}
+    * hasrows, emptymessage, intro, nocourseidnumber, cansubmit, canapprove, submitcount, approvecount, hasselectable,
+      courseid, filter, actionurl, sesskey
+
+    Example context (json):
+    {
+        "tiles": [{"name": "todo", "label": "Not submitted", "count": 3, "url": "#", "active": false}],
+        "rows": [{"userid": 5, "name": "Ines Moreau", "picture": "", "idnumber": "S1004", "noidnumber": false,
+            "total": "68.40", "percentage": "68.40 %", "letter": "D+", "status": "open", "statuslabel": "Not submitted",
+            "badge": "badge bg-secondary", "reasonlabel": "", "cansubmit": true, "canapprove": false,
+            "canwithdraw": false, "canreturn": false, "withdrawurl": "#", "returnurl": "#"}],
+        "hasrows": true, "emptymessage": "", "intro": "Check each course total, then submit.",
+        "nocourseidnumber": false, "cansubmit": true, "canapprove": false, "submitcount": 3, "approvecount": 0,
+        "hasselectable": true, "courseid": 2, "filter": "all", "actionurl": "#", "sesskey": "x"
+    }
+}}
+<div class="local-finalgrades" data-region="finalgrades">
+    <p class="local-finalgrades-intro">{{intro}}</p>
+    {{#nocourseidnumber}}
+    <div class="alert alert-warning" role="alert">{{#str}}nocourseidnumber, local_finalgrades{{/str}}</div>
+    {{/nocourseidnumber}}
+    <nav aria-label="{{#str}}filter, local_finalgrades{{/str}}">
+        <ul class="local-finalgrades-tiles">
+            {{#tiles}}
+            <li>
+                <a href="{{url}}" class="local-finalgrades-tile is-{{name}}{{#active}} is-active{{/active}}"
+                   {{#active}}aria-current="true"{{/active}} data-tile="{{name}}">
+                    <span class="local-finalgrades-tile-count">{{count}}</span>
+                    <span class="local-finalgrades-tile-label">{{label}}</span>
+                </a>
+            </li>
+            {{/tiles}}
+        </ul>
+    </nav>
+    {{#hasrows}}
+    <form method="post" action="{{actionurl}}">
+        <input type="hidden" name="id" value="{{courseid}}">
+        <input type="hidden" name="filter" value="{{filter}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        {{#hasselectable}}
+        <div class="local-finalgrades-bar">
+            <p>{{#cansubmit}}{{#str}}submithelp, local_finalgrades{{/str}}{{/cansubmit}}{{^cansubmit}}{{#str}}approvehelp, local_finalgrades{{/str}}{{/cansubmit}}</p>
+            <div class="local-finalgrades-bar-actions">
+                {{#submitcount}}
+                <button type="submit" name="action" value="submit" class="btn btn-primary" data-testid="submit">{{#str}}submitselected, local_finalgrades{{/str}}</button>
+                {{/submitcount}}
+                {{#approvecount}}
+                <button type="submit" name="action" value="approve" class="btn btn-success" data-testid="approve">{{#str}}approveselected, local_finalgrades{{/str}}</button>
+                {{/approvecount}}
+            </div>
+        </div>
+        {{/hasselectable}}
+        <table class="table generaltable local-finalgrades-table">
+            <thead>
+                <tr>
+                    <th scope="col" class="local-finalgrades-check">
+                        {{#hasselectable}}
+                        <input type="checkbox" id="local-finalgrades-all" data-action="toggle" data-toggle="master"
+                               data-togglegroup="local-finalgrades" data-toggle-selectall="{{#str}}selectall, local_finalgrades{{/str}}"
+                               data-toggle-deselectall="{{#str}}deselectall, local_finalgrades{{/str}}">
+                        <label for="local-finalgrades-all" class="local-finalgrades-sr">{{#str}}selectall, local_finalgrades{{/str}}</label>
+                        {{/hasselectable}}
+                    </th>
+                    <th scope="col">{{#str}}student, local_finalgrades{{/str}}</th>
+                    <th scope="col">{{#str}}idnumber, local_finalgrades{{/str}}</th>
+                    <th scope="col" class="text-end">{{#str}}coursetotal, local_finalgrades{{/str}}</th>
+                    <th scope="col" class="text-end">{{#str}}percentage, local_finalgrades{{/str}}</th>
+                    <th scope="col" class="text-end">{{#str}}letter, local_finalgrades{{/str}}</th>
+                    <th scope="col">{{#str}}status, local_finalgrades{{/str}}</th>
+                    <th scope="col"><span class="local-finalgrades-sr">{{#str}}actions, local_finalgrades{{/str}}</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#rows}}
+                <tr data-userid="{{userid}}" data-status="{{status}}" class="is-{{status}}">
+                    <td class="local-finalgrades-check">
+                        {{#cansubmit}}
+                        <input type="checkbox" name="userids[]" value="{{userid}}" id="local-finalgrades-u{{userid}}"
+                               data-action="toggle" data-toggle="slave" data-togglegroup="local-finalgrades">
+                        <label for="local-finalgrades-u{{userid}}" class="local-finalgrades-sr">{{name}}</label>
+                        {{/cansubmit}}
+                        {{#canapprove}}
+                        <input type="checkbox" name="userids[]" value="{{userid}}" id="local-finalgrades-u{{userid}}"
+                               data-action="toggle" data-toggle="slave" data-togglegroup="local-finalgrades">
+                        <label for="local-finalgrades-u{{userid}}" class="local-finalgrades-sr">{{name}}</label>
+                        {{/canapprove}}
+                    </td>
+                    <th scope="row" class="local-finalgrades-student">
+                        {{#picture}}<span aria-hidden="true">{{{picture}}}</span>{{/picture}}
+                        <span>{{name}}</span>
+                    </th>
+                    <td class="local-finalgrades-idnumber">
+                        {{idnumber}}
+                        {{#noidnumber}}<span class="local-finalgrades-warn">{{#pix}}i/warning, core{{/pix}}{{#str}}noidnumber, local_finalgrades{{/str}}</span>{{/noidnumber}}
+                    </td>
+                    <td class="text-end local-finalgrades-num local-finalgrades-total">{{total}}</td>
+                    <td class="text-end local-finalgrades-num">{{percentage}}</td>
+                    <td class="text-end local-finalgrades-letter">{{letter}}</td>
+                    <td>
+                        <span class="{{badge}}">{{statuslabel}}</span>
+                        {{#reasonlabel}}<span class="local-finalgrades-reason">{{reasonlabel}}</span>{{/reasonlabel}}
+                    </td>
+                    <td class="text-end local-finalgrades-actions">
+                        {{#canreturn}}<a href="{{returnurl}}" class="btn btn-sm btn-outline-secondary">{{#str}}return, local_finalgrades{{/str}}<span class="local-finalgrades-sr"> {{name}}</span></a>{{/canreturn}}
+                        {{#canwithdraw}}<a href="{{withdrawurl}}" class="btn btn-sm btn-outline-secondary">{{#str}}withdraw, local_finalgrades{{/str}}<span class="local-finalgrades-sr"> {{name}}</span></a>{{/canwithdraw}}
+                    </td>
+                </tr>
+                {{/rows}}
+            </tbody>
+        </table>
+    </form>
+    {{/hasrows}}
+    {{^hasrows}}
+    <p class="alert alert-info">{{emptymessage}}</p>
+    {{/hasrows}}
+</div>
+{{#js}}
+require(['core/checkbox-toggleall'], function(ToggleAll) {
+    ToggleAll.init();
+});
+{{/js}}

@@ -1,0 +1,195 @@
+/* Final grade submission. Scoped to .local-finalgrades; the screen reader class is defined here because Moodle 4.5 and 5.x name it differently. */
+.local-finalgrades-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.local-finalgrades-intro {
+    max-width: 48rem;
+    color: #495057;
+}
+
+/* Count tiles that filter the table. */
+.local-finalgrades-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: .75rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+.local-finalgrades-tile {
+    display: flex;
+    flex-direction: column;
+    padding: .75rem 1rem;
+    border: 1px solid #dee2e6;
+    border-top: 4px solid #6a737b;
+    border-radius: .5rem;
+    background: #fff;
+    color: #1d2125;
+    text-decoration: none;
+}
+
+.local-finalgrades-tile:hover,
+.local-finalgrades-tile:focus {
+    background: #f8f9fa;
+    color: #1d2125;
+    text-decoration: none;
+}
+
+.local-finalgrades-tile.is-active {
+    box-shadow: 0 0 0 3px rgba(15, 108, 191, .35);
+}
+
+.local-finalgrades-tile.is-waiting {
+    border-top-color: #0f6cbf;
+}
+
+.local-finalgrades-tile.is-ready {
+    border-top-color: #357a32;
+}
+
+.local-finalgrades-tile.is-sent {
+    border-top-color: #1d2125;
+}
+
+.local-finalgrades-tile-count {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.local-finalgrades-tile-label {
+    color: #495057;
+    font-size: .9rem;
+}
+
+/* Action bar above the table. */
+.local-finalgrades-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1.5rem;
+    margin-bottom: 1rem;
+    padding: .75rem 1rem;
+    border: 1px solid #b6d4ee;
+    border-radius: .5rem;
+    background: #f0f6fc;
+}
+
+.local-finalgrades-bar p {
+    max-width: 40rem;
+    margin: 0;
+}
+
+.local-finalgrades-bar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+/* Table. */
+.local-finalgrades-table td,
+.local-finalgrades-table th {
+    vertical-align: middle;
+}
+
+.local-finalgrades-check {
+    width: 2.5rem;
+}
+
+.local-finalgrades-check input {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+    accent-color: #0f6cbf;
+    cursor: pointer;
+}
+
+.local-finalgrades-student {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.local-finalgrades-student .userpicture,
+.local-finalgrades-student .userinitials {
+    margin-right: .4rem;
+}
+
+.local-finalgrades-idnumber {
+    color: #495057;
+    font-variant-numeric: tabular-nums;
+}
+
+.local-finalgrades-num {
+    font-variant-numeric: tabular-nums;
+}
+
+.local-finalgrades-total,
+.local-finalgrades-letter {
+    font-weight: 700;
+}
+
+.local-finalgrades-table tr.is-missing td,
+.local-finalgrades-table tr.is-missing th {
+    color: #5b6269;
+}
+
+.local-finalgrades-table tr.is-returned {
+    background: #fff8e6;
+}
+
+.local-finalgrades-warn {
+    display: inline-flex;
+    align-items: center;
+    color: #8a5300;
+    font-size: .875rem;
+}
+
+.local-finalgrades-warn .icon {
+    margin-right: .25rem;
+}
+
+.local-finalgrades-reason {
+    display: block;
+    max-width: 22rem;
+    margin-top: .25rem;
+    color: #495057;
+    font-size: .875rem;
+}
+
+.local-finalgrades-actions {
+    white-space: nowrap;
+}
+
+/* Reason form summary and exports page. */
+.local-finalgrades-summary {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: .25rem 1.25rem;
+    max-width: 32rem;
+    margin-bottom: 1.5rem;
+    padding: .75rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    background: #f8f9fa;
+}
+
+.local-finalgrades-summary dt {
+    color: #495057;
+    font-weight: 400;
+}
+
+.local-finalgrades-summary dd {
+    margin: 0;
+    font-weight: 600;
+}

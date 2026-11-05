@@ -187,4 +187,12 @@ final class submission_test extends \advanced_testcase {
         $this->assertEquals($student->id, $events[0]->relateduserid);
         $this->assertSame('Wrong total', $events[2]->other['reason']);
     }
+
+    public function test_deleting_the_course_removes_its_submissions(): void {
+        global $DB;
+        $student = $this->student(60);
+        submission::submit($this->course, [$student->id], $this->teacher->id);
+        delete_course($this->course, false);
+        $this->assertFalse($DB->record_exists('local_finalgrades_sub', ['courseid' => $this->course->id]));
+    }
 }

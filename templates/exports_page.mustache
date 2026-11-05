@@ -1,0 +1,103 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_finalgrades/exports_page
+
+    The registrar's page: grades waiting to be sent, per course, an export button and the past export files.
+
+    Context variables required for this template:
+    * pendingcount, haspending, pending - list of {course, idnumber, url, new, change, withdrawn}
+    * hasexports, exports - list of {filename, rowcount, time, by, url}
+    * pendinglabel, nextrun, requireapproval, dropfolder, actionurl, sesskey (nextrun and dropfolder are sentences)
+
+    Example context (json):
+    {
+        "pendingcount": 3, "haspending": true,
+        "pending": [{"course": "History 101", "idnumber": "HIST101-2026", "url": "#", "new": 2, "change": 1, "withdrawn": 0}],
+        "hasexports": true,
+        "exports": [{"filename": "final-grades-20261105-021500-4.csv", "rowcount": 12, "time": "5/11/26, 02:15",
+            "by": "Scheduled task", "url": "#"}],
+        "pendinglabel": "Grades waiting to be sent: 3", "nextrun": "The next scheduled export runs 6/11/26, 02:15.", "requireapproval": false, "dropfolder": "", "actionurl": "#", "sesskey": "x"
+    }
+}}
+<div class="local-finalgrades" data-region="exports">
+    <p class="local-finalgrades-intro">
+        {{#requireapproval}}{{#str}}exportsintro:approval, local_finalgrades{{/str}}{{/requireapproval}}
+        {{^requireapproval}}{{#str}}exportsintro, local_finalgrades{{/str}}{{/requireapproval}}
+        {{nextrun}}
+    </p>
+    <form method="post" action="{{actionurl}}" class="local-finalgrades-bar">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="export">
+        <p>
+            <strong>{{pendinglabel}}</strong>
+            {{#dropfolder}}<br>{{dropfolder}}{{/dropfolder}}
+        </p>
+        <button type="submit" class="btn btn-primary" data-testid="exportnow"{{^haspending}} disabled{{/haspending}}>{{#str}}exportnow, local_finalgrades{{/str}}</button>
+    </form>
+    {{#haspending}}
+    <h3 class="h5">{{#str}}waiting, local_finalgrades{{/str}}</h3>
+    <table class="table generaltable local-finalgrades-table">
+        <thead>
+            <tr>
+                <th scope="col">{{#str}}course{{/str}}</th>
+                <th scope="col">{{#str}}idnumber, local_finalgrades{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}action:new, local_finalgrades{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}action:change, local_finalgrades{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}action:withdrawn, local_finalgrades{{/str}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#pending}}
+            <tr>
+                <th scope="row"><a href="{{url}}">{{course}}</a></th>
+                <td class="local-finalgrades-idnumber">{{idnumber}}</td>
+                <td class="text-end local-finalgrades-num">{{new}}</td>
+                <td class="text-end local-finalgrades-num">{{change}}</td>
+                <td class="text-end local-finalgrades-num">{{withdrawn}}</td>
+            </tr>
+            {{/pending}}
+        </tbody>
+    </table>
+    {{/haspending}}
+    <h3 class="h5">{{#str}}pastexports, local_finalgrades{{/str}}</h3>
+    {{#hasexports}}
+    <table class="table generaltable local-finalgrades-table">
+        <thead>
+            <tr>
+                <th scope="col">{{#str}}file, local_finalgrades{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}rows, local_finalgrades{{/str}}</th>
+                <th scope="col">{{#str}}made, local_finalgrades{{/str}}</th>
+                <th scope="col">{{#str}}madeby, local_finalgrades{{/str}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#exports}}
+            <tr>
+                <th scope="row"><a href="{{url}}">{{#pix}}f/spreadsheet, core{{/pix}}{{filename}}</a></th>
+                <td class="text-end local-finalgrades-num">{{rowcount}}</td>
+                <td>{{time}}</td>
+                <td>{{by}}</td>
+            </tr>
+            {{/exports}}
+        </tbody>
+    </table>
+    {{/hasexports}}
+    {{^hasexports}}
+    <p class="alert alert-info">{{#str}}noexports, local_finalgrades{{/str}}</p>
+    {{/hasexports}}
+</div>
