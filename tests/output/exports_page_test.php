@@ -18,6 +18,7 @@ namespace local_finalgrades\output;
 
 use local_finalgrades\local\exporter;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_finalgrades\output\exports_page::class)]
 /**
  * Tests for the data of the exports page.
  *

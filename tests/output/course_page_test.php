@@ -19,6 +19,7 @@ namespace local_finalgrades\output;
 use local_finalgrades\local\exporter;
 use local_finalgrades\local\submission;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_finalgrades\output\course_page::class)]
 /**
  * Tests for the data of the course's final grades page.
  *

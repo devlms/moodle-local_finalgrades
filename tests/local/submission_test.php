@@ -16,6 +16,7 @@
 
 namespace local_finalgrades\local;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_finalgrades\local\submission::class)]
 /**
  * Tests for submitting, withdrawing and approving final grades.
  *

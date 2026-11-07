@@ -16,6 +16,7 @@
 
 namespace local_finalgrades\local;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_finalgrades\local\exporter::class)]
 /**
  * Tests for the export of final grades to the student records system.
  *

@@ -24,6 +24,7 @@ use core_privacy\tests\provider_testcase;
 use local_finalgrades\local\exporter;
 use local_finalgrades\local\submission;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\local_finalgrades\privacy\provider::class)]
 /**
  * Tests for the privacy provider.
  *
