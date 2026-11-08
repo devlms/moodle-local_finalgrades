@@ -42,7 +42,7 @@ $capabilities = [
     // See every course's submissions and download the export files.
     'local/finalgrades:export' => [
         'riskbitmask' => RISK_PERSONAL,
-        'captype' => 'read',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => ['manager' => CAP_ALLOW],
     ],

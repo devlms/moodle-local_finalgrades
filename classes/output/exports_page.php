@@ -49,7 +49,11 @@ class exports_page implements \renderable, \templatable {
         $pendingrows = [];
         foreach ($courses as $course) {
             $pendingrows[] = [
-                'course' => format_string($course->fullname),
+                // Unescaped here: the template escapes once.
+                'course' => format_string($course->fullname, true, [
+                    'context' => \context_course::instance($course->id),
+                    'escape' => false,
+                ]),
                 'idnumber' => $course->idnumber,
                 'url' => (new \moodle_url('/local/finalgrades/index.php', ['id' => $course->id]))->out(false),
             ] + $bycourse[$course->id];

@@ -123,6 +123,27 @@ class submission {
      * @return int How many grades were submitted.
      */
     public static function submit(stdClass $course, array $userids, int $by): int {
+        // One submit per course at a time: a double click or two teachers must not create two rows.
+        $lock = \core\lock\lock_config::get_lock_factory('local_finalgrades')->get_lock('submit_' . $course->id, 30);
+        if (!$lock) {
+            throw new \moodle_exception('error:busy', 'local_finalgrades');
+        }
+        try {
+            return self::submit_locked($course, $userids, $by);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * The work of submit(), while holding the course lock.
+     *
+     * @param stdClass $course
+     * @param int[] $userids
+     * @param int $by
+     * @return int
+     */
+    private static function submit_locked(stdClass $course, array $userids, int $by): int {
         global $DB;
         grade_regrade_final_grades($course->id);
         $students = self::students($course->id);
@@ -148,7 +169,11 @@ class submission {
                 'submittedby' => $by,
                 'timesubmitted' => time(),
             ]);
-            $grade->set_locked(1, false, false);
+            // Submitted means locked. If the gradebook refuses the lock, the grade is not submitted.
+            if (!$grade->set_locked(1, false, false)) {
+                $DB->delete_records('local_finalgrades_sub', ['id' => $id]);
+                continue;
+            }
             self::log('grade_submitted', $course->id, $id, $userid);
             $count++;
         }

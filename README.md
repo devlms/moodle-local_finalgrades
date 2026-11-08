@@ -6,7 +6,7 @@
 [![Moodle](https://img.shields.io/badge/Moodle-4.5%20to%205.3-f98012)](https://moodledev.io/general/releases)
 [![PHP](https://img.shields.io/badge/PHP-8.1%20to%208.4-777bb4)](https://www.php.net/supported-versions.php)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue)](LICENSE)
-[![Maturity](https://img.shields.io/badge/maturity-alpha-orange)](version.php)
+[![Maturity](https://img.shields.io/badge/maturity-stable-green)](version.php)
 
 Teachers check each student's course total and submit it. Submitted totals are locked in the gradebook, so a late change to an activity cannot move them. An approver can sign them off first if your school wants that. Every night the grades waiting to be sent go into one CSV file for the student records system: new grades, changed grades and withdrawn ones, each marked as such.
 

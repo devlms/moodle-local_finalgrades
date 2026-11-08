@@ -163,13 +163,38 @@ final class exporter_test extends \advanced_testcase {
         $this->assertSame(exporter::file($export)->get_content(), file_get_contents($dir . '/' . $export->filename));
     }
 
-    public function test_a_missing_drop_folder_does_not_lose_the_export(): void {
+    public function test_a_missing_drop_folder_stops_the_export_before_anything_is_marked_sent(): void {
         set_config('dropfolder', '/nonexistent/finalgrades', 'local_finalgrades');
         $student = $this->student(60, 'S1');
         submission::submit($this->course, [$student->id], $this->teacher->id);
-        $export = exporter::run();
-        $this->assertDebuggingCalled();
-        $this->assertNotNull(exporter::file($export));
+        try {
+            exporter::run();
+            $this->fail('Exported with a broken drop folder');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('error:dropfolder', $e->errorcode);
+        }
+        $this->assertCount(1, exporter::pending(), 'Still waiting to be sent.');
+        set_config('dropfolder', '', 'local_finalgrades');
+        $this->assertNotNull(exporter::run());
+    }
+
+    public function test_a_drop_folder_inside_the_web_root_is_refused(): void {
+        global $CFG;
+        set_config('dropfolder', $CFG->dirroot . '/local/finalgrades', 'local_finalgrades');
+        $this->expectException(\moodle_exception::class);
+        exporter::drop_folder();
+    }
+
+    public function test_text_cells_cannot_run_as_spreadsheet_formulas(): void {
+        $this->assertSame("'=HYPERLINK(1)", exporter::cell('=HYPERLINK(1)'));
+        $this->assertSame("'+1", exporter::cell('+1'));
+        $this->assertSame("'-1", exporter::cell('-1'));
+        $this->assertSame("'@SUM(A1)", exporter::cell('@SUM(A1)'));
+        $this->assertSame('Sara Lopez', exporter::cell('Sara Lopez'));
+        $student = $this->student(60, '=cmd');
+        submission::submit($this->course, [$student->id], $this->teacher->id);
+        $rows = $this->csv(exporter::run());
+        $this->assertStringContainsString("'=cmd", implode(',', $rows[0]));
     }
 
     public function test_export_event(): void {

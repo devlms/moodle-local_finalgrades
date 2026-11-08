@@ -106,7 +106,28 @@ class exporter {
      * @return stdClass|null The export record, or null when nothing was pending.
      */
     public static function run(int $by = 0): ?stdClass {
+        // One export at a time: "Export now" during the nightly task must not send the same grades twice.
+        $lock = \core\lock\lock_config::get_lock_factory('local_finalgrades')->get_lock('export', 60);
+        if (!$lock) {
+            throw new \moodle_exception('error:busy', 'local_finalgrades');
+        }
+        try {
+            return self::run_locked($by);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * The work of run(), while holding the export lock.
+     *
+     * @param int $by
+     * @return stdClass|null
+     */
+    private static function run_locked(int $by): ?stdClass {
         global $DB;
+        // Check the drop folder before anything is marked as sent.
+        $folder = self::drop_folder();
         $rows = self::pending();
         if (!$rows) {
             return null;
@@ -133,7 +154,9 @@ class exporter {
         }
         $transaction->allow_commit();
 
-        self::drop($file, $export->filename);
+        if ($folder !== null) {
+            self::drop($file, $folder, $export->filename);
+        }
         \local_finalgrades\event\grades_exported::create([
             'context' => \context_system::instance(),
             'objectid' => $export->id,
@@ -173,17 +196,18 @@ class exporter {
 
         $fh = fopen('php://temp', 'w+');
         fputcsv($fh, self::COLUMNS, ',', '"', '');
+        $t = fn($v) => self::cell((string) $v);
         foreach ($rows as $row) {
             fputcsv($fh, [
                 $row->action,
-                $row->courseidnumber,
-                $courses[$row->courseid]->shortname ?? '',
-                $row->useridnumber,
-                isset($users[$row->userid]) ? fullname($users[$row->userid]) : '',
+                $t($row->courseidnumber),
+                $t($courses[$row->courseid]->shortname ?? ''),
+                $t($row->useridnumber),
+                $t(isset($users[$row->userid]) ? fullname($users[$row->userid]) : ''),
                 $row->grade === null ? '' : number_format((float) $row->grade, 2, '.', ''),
-                $row->percentage,
-                $row->letter,
-                isset($users[$row->submittedby]) ? fullname($users[$row->submittedby]) : '',
+                $t($row->percentage),
+                $t($row->letter),
+                $t(isset($users[$row->submittedby]) ? fullname($users[$row->submittedby]) : ''),
                 gmdate('Y-m-d\TH:i:s\Z', (int) $row->timesubmitted),
             ], ',', '"', '');
         }
@@ -194,25 +218,54 @@ class exporter {
     }
 
     /**
-     * Copy the file to the drop folder, when one is set. Written under a temporary name and renamed,
-     * so a job reading the folder never sees half a file.
+     * A text cell made safe for spreadsheets: a value starting with = + - @ or a control character
+     * would run as a formula when the file is opened in Excel, so it gets a leading apostrophe.
      *
-     * @param \stored_file $file
-     * @param string $filename
+     * @param string $value
+     * @return string
      */
-    protected static function drop(\stored_file $file, string $filename): void {
+    public static function cell(string $value): string {
+        return preg_match('/^[=+\-@\t\r]/', $value) ? "'" . $value : $value;
+    }
+
+    /**
+     * The drop folder, or null when none is set. Throws when it is set but cannot be used, so the task
+     * fails visibly and nothing is marked as sent.
+     *
+     * @return string|null
+     */
+    public static function drop_folder(): ?string {
+        global $CFG;
         $folder = rtrim((string) get_config('local_finalgrades', 'dropfolder'), '/');
         if ($folder === '') {
-            return;
+            return null;
         }
-        if (!is_dir($folder) || !is_writable($folder)) {
-            debugging("Final grades: the drop folder $folder does not exist or is not writable. "
-                . "The export is still available to download.", DEBUG_NORMAL);
-            return;
+        $real = realpath($folder);
+        if ($real === false || !is_dir($real) || !is_writable($real)) {
+            throw new \moodle_exception('error:dropfolder', 'local_finalgrades', '', $folder);
         }
+        // Never inside the web root, where the file could be downloaded by anyone.
+        $root = realpath($CFG->dirroot);
+        if ($root !== false && ($real === $root || str_starts_with($real, $root . DIRECTORY_SEPARATOR))) {
+            throw new \moodle_exception('error:dropfolderwebroot', 'local_finalgrades', '', $folder);
+        }
+        return $real;
+    }
+
+    /**
+     * Copy the file to the drop folder. Written under a temporary name and renamed, so a job reading
+     * the folder never sees half a file.
+     *
+     * @param \stored_file $file
+     * @param string $folder
+     * @param string $filename
+     */
+    protected static function drop(\stored_file $file, string $folder, string $filename): void {
+        global $CFG;
         $temp = "$folder/.$filename.part";
-        if ($file->copy_content_to($temp)) {
-            rename($temp, "$folder/$filename");
+        if (!$file->copy_content_to($temp) || !rename($temp, "$folder/$filename")) {
+            throw new \moodle_exception('error:dropfolder', 'local_finalgrades', '', $folder);
         }
+        @chmod("$folder/$filename", $CFG->filepermissions);
     }
 }

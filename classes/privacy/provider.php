@@ -176,6 +176,10 @@ class provider implements
         if ($context instanceof \context_course) {
             $DB->delete_records('local_finalgrades_sub', ['courseid' => $context->instanceid]);
         }
+        // Exports are kept as the record of what was sent; only who made them is removed.
+        if ($context instanceof \context_system) {
+            $DB->set_field_select('local_finalgrades_export', 'createdby', 0, 'createdby > 0');
+        }
     }
 
     /**

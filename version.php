@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_finalgrades';
-$plugin->version = 2026110500;
+$plugin->version = 2026110800;
 $plugin->requires = 2024100700;
 $plugin->supported = [405, 503];
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.1.0';
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release = '1.0.0';
