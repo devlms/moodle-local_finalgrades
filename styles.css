@@ -16,74 +16,101 @@
     color: #495057;
 }
 
-/* Count tiles that filter the table. */
-.local-finalgrades-tiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: .75rem;
-    margin: 0 0 1rem;
+/* Stage strip: where every student's grade is, in order, each stage as wide as its share. Each stage filters the table. */
+.local-finalgrades-stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 1.25rem 0 .25rem;
     padding: 0;
     list-style: none;
 }
 
-.local-finalgrades-tile {
-    display: flex;
-    flex-direction: column;
-    padding: .75rem 1rem;
-    border: 1px solid #dee2e6;
-    border-top: 4px solid #6a737b;
-    border-radius: .5rem;
-    background: #fff;
+.local-finalgrades-stages > li {
+    flex: var(--local-finalgrades-share, 0) 1 0;
+    min-width: 9rem;
+}
+
+.local-finalgrades-stage {
+    display: block;
+    padding: .55rem .25rem .25rem;
+    border-top: 8px solid #ced4da;
     color: #1d2125;
     text-decoration: none;
 }
 
-.local-finalgrades-tile:hover,
-.local-finalgrades-tile:focus {
-    background: #f8f9fa;
+.local-finalgrades-stage:hover,
+.local-finalgrades-stage:focus {
     color: #1d2125;
     text-decoration: none;
 }
 
-.local-finalgrades-tile.is-active {
-    box-shadow: 0 0 0 3px rgba(15, 108, 191, .35);
+.local-finalgrades-stage:hover .local-finalgrades-stage-label,
+.local-finalgrades-stage:focus .local-finalgrades-stage-label {
+    text-decoration: underline;
 }
 
-.local-finalgrades-tile.is-waiting {
-    border-top-color: #0f6cbf;
+.local-finalgrades-stage.is-empty {
+    padding-top: .75rem;
+    border-top-width: 4px;
+    border-top-style: dotted;
+    color: #6a737b;
 }
 
-.local-finalgrades-tile.is-ready {
-    border-top-color: #357a32;
+.local-finalgrades-stage.is-todo:not(.is-empty) {
+    border-top-color: #8f959e;
 }
 
-.local-finalgrades-tile.is-sent {
+.local-finalgrades-stage.is-waiting:not(.is-empty) {
+    border-top-color: #3b7bbf;
+}
+
+.local-finalgrades-stage.is-ready:not(.is-empty) {
+    border-top-color: #4e9a4a;
+}
+
+.local-finalgrades-stage.is-sent:not(.is-empty) {
     border-top-color: #1d2125;
 }
 
-.local-finalgrades-tile-count {
-    font-size: 1.75rem;
+.local-finalgrades-stage.is-needsyou:not(.is-empty) {
+    border-top-color: #e8a33d;
+}
+
+.local-finalgrades-stage.is-active {
+    outline: 2px solid #0f6cbf;
+    outline-offset: 2px;
+}
+
+.local-finalgrades-stage-count {
+    margin-right: .35rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
 }
 
-.local-finalgrades-tile-label {
-    color: #495057;
-    font-size: .9rem;
+.local-finalgrades-stage-label {
+    font-size: .95rem;
 }
 
-/* Action bar above the table. */
+.local-finalgrades-stage-note {
+    display: block;
+    color: #8a5a00;
+    font-size: .8125rem;
+    font-weight: 600;
+}
+
+/* What to do next, with the action that does it. */
 .local-finalgrades-bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: .75rem 1.5rem;
-    margin-bottom: 1rem;
-    padding: .75rem 1rem;
-    border: 1px solid #b6d4ee;
-    border-radius: .5rem;
-    background: #f0f6fc;
+    gap: .5rem 1.5rem;
+    margin: .75rem 0 1.25rem;
+    padding: .75rem 0;
+    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
 }
 
 .local-finalgrades-bar p {

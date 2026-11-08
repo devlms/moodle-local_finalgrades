@@ -108,6 +108,7 @@ $string['returntitle'] = 'Return the grade of {$a}';
 $string['rows'] = 'Rows';
 $string['selectall'] = 'Select all';
 $string['sentlabel'] = 'Sent to records';
+$string['stage:needsyou'] = 'Waiting for you';
 $string['status'] = 'Status';
 $string['status:approved'] = 'Approved';
 $string['status:missing'] = 'No course total';

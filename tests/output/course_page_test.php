@@ -134,6 +134,16 @@ final class course_page_test extends \advanced_testcase {
         $this->assertSame(['Done'], array_column($this->export('ready')['rows'], 'lastname'));
     }
 
+    public function test_the_stage_waiting_on_the_teacher_is_marked_and_percentages_are_not_repeated(): void {
+        $this->student('Open', 81);
+        $data = $this->export();
+        $needs = array_column($data['tiles'], 'needsyou', 'name');
+        $this->assertTrue($needs['todo']);
+        $this->assertFalse($needs['ready']);
+        // The demo course total is out of 100, so a percentage column would repeat it.
+        $this->assertFalse($data['showpercentage']);
+    }
+
     public function test_approval_adds_a_waiting_tile_and_approve_action(): void {
         set_config('requireapproval', 1, 'local_finalgrades');
         $done = $this->student('Done', 70);

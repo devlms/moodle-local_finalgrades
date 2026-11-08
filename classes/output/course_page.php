@@ -203,12 +203,16 @@ class course_page implements \renderable, \templatable {
         $names = $approval ? ['todo', 'waiting', 'ready', 'sent'] : ['todo', 'ready', 'sent'];
         $filter = in_array($this->filter, $names, true) ? $this->filter : 'all';
         $counts = array_count_values(array_column($rows, 'tile'));
+        // The stage that waits on this user: grades to submit for a teacher, grades to approve for an approver.
+        $mine = has_capability('local/finalgrades:submit', $context) ? 'todo'
+            : ($approval && has_capability('local/finalgrades:approve', $context) ? 'waiting' : '');
         $tiles = [];
         foreach ($names as $name) {
             $tiles[] = [
                 'name' => $name,
                 'label' => get_string('tile:' . $name, 'local_finalgrades'),
                 'count' => $counts[$name] ?? 0,
+                'needsyou' => $name === $mine && !empty($counts[$name]),
                 'active' => $filter === $name,
                 'url' => (new moodle_url('/local/finalgrades/index.php', [
                     'id' => $this->course->id, 'filter' => $filter === $name ? 'all' : $name,
@@ -225,6 +229,8 @@ class course_page implements \renderable, \templatable {
             'rows' => $shown,
             'hasrows' => (bool) $shown,
             'emptymessage' => get_string($rows ? 'nostudentsinfilter' : 'nostudents', 'local_finalgrades'),
+            // A total out of 100 already is a percentage: the column would only repeat it.
+            'showpercentage' => !self::out_of_hundred($this->course->id),
             'requireapproval' => $approval,
             'cansubmit' => has_capability('local/finalgrades:submit', $context),
             'canapprove' => $approval && has_capability('local/finalgrades:approve', $context),
@@ -237,5 +243,16 @@ class course_page implements \renderable, \templatable {
             'filter' => $filter,
             'sesskey' => sesskey(),
         ];
+    }
+
+    /**
+     * Whether the course total runs from 0 to 100, so its value is already a percentage.
+     *
+     * @param int $courseid
+     * @return bool
+     */
+    private static function out_of_hundred(int $courseid): bool {
+        $item = \grade_item::fetch_course_item($courseid);
+        return abs((float) $item->grademin) < 0.00001 && abs((float) $item->grademax - 100) < 0.00001;
     }
 }

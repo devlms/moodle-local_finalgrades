@@ -17,18 +17,19 @@
 {{!
     @template local_finalgrades/course_page
 
-    A course's final grades: count tiles, and every student's course total with where their grade is.
+    A course's final grades: a strip of the stages in order (each filters the table), and every student's course total with where their grade is.
 
     Context variables required for this template:
-    * tiles - list of {name, label, count, url, active}
+    * tiles - list of {name, label, count, needsyou, url, active}, the stages in order
     * rows - list of {userid, name, picture, idnumber, noidnumber, total, percentage, letter, status, statuslabel, badge,
       reasonlabel, ungradedlabel, cansubmit, canapprove, canwithdraw, canreturn, withdrawurl, returnurl}
+    * showpercentage - false when the course total is out of 100
     * hasrows, emptymessage, intro, nocourseidnumber, cansubmit, canapprove, submitcount, approvecount, hasselectable,
       courseid, filter, actionurl, sesskey
 
     Example context (json):
     {
-        "tiles": [{"name": "todo", "label": "Not submitted", "count": 3, "url": "#", "active": false}],
+        "tiles": [{"name": "todo", "label": "Not submitted", "count": 3, "needsyou": true, "url": "#", "active": false}],
         "rows": [{"userid": 5, "name": "Ines Moreau", "picture": "", "idnumber": "S1004", "noidnumber": false,
             "total": "68.40", "percentage": "68.40 %", "letter": "D+", "status": "open", "statuslabel": "Not submitted",
             "badge": "local-finalgrades-badge is-open", "reasonlabel": "", "ungradedlabel": "", "cansubmit": true, "canapprove": false,
@@ -44,17 +45,18 @@
     <div class="alert alert-warning" role="alert">{{#str}}nocourseidnumber, local_finalgrades{{/str}}</div>
     {{/nocourseidnumber}}
     <nav aria-label="{{#str}}filter, local_finalgrades{{/str}}">
-        <ul class="local-finalgrades-tiles">
+        <ol class="local-finalgrades-stages">
             {{#tiles}}
-            <li>
-                <a href="{{url}}" class="local-finalgrades-tile is-{{name}}{{#active}} is-active{{/active}}"
+            <li style="--local-finalgrades-share: {{count}}">
+                <a href="{{url}}" class="local-finalgrades-stage is-{{name}}{{^count}} is-empty{{/count}}{{#needsyou}} is-needsyou{{/needsyou}}{{#active}} is-active{{/active}}"
                    {{#active}}aria-current="true"{{/active}} data-tile="{{name}}">
-                    <span class="local-finalgrades-tile-count">{{count}}</span>
-                    <span class="local-finalgrades-tile-label">{{label}}</span>
+                    <span class="local-finalgrades-stage-count">{{count}}</span>
+                    <span class="local-finalgrades-stage-label">{{label}}</span>
+                    {{#needsyou}}<span class="local-finalgrades-stage-note">{{#str}}stage:needsyou, local_finalgrades{{/str}}</span>{{/needsyou}}
                 </a>
             </li>
             {{/tiles}}
-        </ul>
+        </ol>
     </nav>
     {{#hasrows}}
     <form method="post" action="{{actionurl}}">
@@ -86,7 +88,7 @@
                     <th scope="col">{{#str}}student, local_finalgrades{{/str}}</th>
                     <th scope="col">{{#str}}idnumber, local_finalgrades{{/str}}</th>
                     <th scope="col" class="text-end">{{#str}}coursetotal, local_finalgrades{{/str}}</th>
-                    <th scope="col" class="text-end">{{#str}}percentage, local_finalgrades{{/str}}</th>
+                    {{#showpercentage}}<th scope="col" class="text-end">{{#str}}percentage, local_finalgrades{{/str}}</th>{{/showpercentage}}
                     <th scope="col" class="text-end">{{#str}}letter, local_finalgrades{{/str}}</th>
                     <th scope="col">{{#str}}status, local_finalgrades{{/str}}</th>
                     <th scope="col"><span class="local-finalgrades-sr">{{#str}}actions, local_finalgrades{{/str}}</span></th>
@@ -116,7 +118,7 @@
                         {{#noidnumber}}<span class="local-finalgrades-warn">{{#pix}}i/warning, core{{/pix}}{{#str}}noidnumber, local_finalgrades{{/str}}</span>{{/noidnumber}}
                     </td>
                     <td class="text-end local-finalgrades-num local-finalgrades-total">{{total}}</td>
-                    <td class="text-end local-finalgrades-num">{{percentage}}</td>
+                    {{#showpercentage}}<td class="text-end local-finalgrades-num">{{percentage}}</td>{{/showpercentage}}
                     <td class="text-end local-finalgrades-letter">{{letter}}</td>
                     <td>
                         <span class="{{badge}}">{{statuslabel}}</span>
