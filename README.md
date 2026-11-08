@@ -7,6 +7,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.1%20to%208.4-777bb4)](https://www.php.net/supported-versions.php)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue)](LICENSE)
 [![Maturity](https://img.shields.io/badge/maturity-stable-green)](version.php)
+[![Sponsor](https://img.shields.io/badge/sponsor-this%20plugin-2438ff)](https://devlms.com/sponsors/?plugin=local_finalgrades)
 
 Teachers check each student's course total and submit it. Submitted totals are locked in the gradebook, so a late change to an activity cannot move them. An approver can sign them off first if your school wants that. Every night the grades waiting to be sent go into one CSV file for the student records system: new grades, changed grades and withdrawn ones, each marked as such.
 
@@ -100,6 +101,12 @@ Every action is a Moodle event, so [Autoflow](https://github.com/devlms/moodle-t
 ## Who made it
 
 [DevLMS](https://devlms.com) builds custom Moodle plugins. Need this connected to your records system, or a different plugin? [Get a quote](https://devlms.com/#quote).
+
+## Sponsors
+
+<!-- sponsors:start -->
+No sponsors yet. [Sponsor this plugin](https://devlms.com/sponsors/?plugin=local_finalgrades): your name or logo, with a link to your site, goes here and on [devlms.com/sponsors](https://devlms.com/sponsors/).
+<!-- sponsors:end -->
 
 ## License
 

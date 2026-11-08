@@ -1,0 +1,37 @@
+# Keeps the Sponsors section of README.md in step with devlms.com/sponsors.
+name: Sponsors
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refresh the sponsors section
+        run: |
+          component=$(sed -n "s/.*\$plugin->component *= *'\([a-z0-9_]*\)'.*/\1/p" version.php)
+          curl -fsS "https://devlms.com/api/sponsors/${component}.md" -o "$RUNNER_TEMP/sponsors.md"
+          python3 - "$RUNNER_TEMP/sponsors.md" <<'PY'
+          import re, sys
+          block = open(sys.argv[1], encoding="utf-8").read().strip()
+          readme = open("README.md", encoding="utf-8").read()
+          pattern = r"(<!-- sponsors:start -->\n).*?(\n<!-- sponsors:end -->)"
+          new = re.sub(pattern, lambda m: m.group(1) + block + m.group(2), readme, flags=re.S)
+          open("README.md", "w", encoding="utf-8").write(new)
+          PY
+
+      - name: Commit if changed
+        run: |
+          git diff --quiet README.md && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Update sponsors"
+          git push
