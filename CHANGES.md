@@ -1,5 +1,13 @@
 # Changes
 
+## 1.1.0 (2026-11-08)
+
+Redesigned pages, same features.
+
+- The course page shows where every grade is as one strip of stages in order, each as wide as its share; each stage still filters the table. The stage that waits on you is marked.
+- One plain line with the submit or approve action, in place of the coloured box.
+- No percentage column when the course total is already out of 100.
+
 ## 1.0.0 (2026-11-08)
 
 First stable release.
